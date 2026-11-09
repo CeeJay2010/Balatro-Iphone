@@ -17,7 +17,7 @@ iPHONE PLAYING
 - For the best full-screen experience, open the Pages URL in Safari, use Share >
   Add to Home Screen, then launch the installed web app in landscape.
 - The page hides browser scrolling/selection gestures and sizes the game canvas
-  to the visible iPhone viewport, including after rotation or returning to the app.
+  to the full browser layout viewport (using innerWidth/innerHeight, not iOS visualViewport), including after rotation or returning to the app.
 - Touch input is handled by the bundled game runtime and forwarded to the game's
   cursor controls. Tap and drag directly on the game as appropriate.
 - The web app manifest requests landscape orientation. iOS Safari may not force
