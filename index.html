@@ -126,13 +126,18 @@
             inset: 0;
             touch-action: none;
             -webkit-text-size-adjust: 100%;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         #loadingCanvas,
         #canvas {
             display: block;
             position: fixed;
-            inset: 0;
+            left: 0;
+            top: 0;
+            right: auto;
+            bottom: auto;
             margin: 0;
             width: 100vw !important;
             height: 100vh !important;
@@ -146,6 +151,7 @@
             user-select: none;
             -webkit-touch-callout: none;
             -webkit-tap-highlight-color: transparent;
+            -webkit-appearance: none;
         }
 
         /* Fill the complete phone viewport in either orientation. The drawing
@@ -227,6 +233,10 @@
         }
         window.addEventListener("load", scheduleMobileViewportFit);
         document.addEventListener("DOMContentLoaded", scheduleMobileViewportFit);
+        window.addEventListener("pageshow", scheduleMobileViewportFit, { passive: true });
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible") scheduleMobileViewportFit();
+        });
         // Re-apply after the game runtime changes the canvas's inline dimensions.
         if (typeof MutationObserver !== "undefined") {
             const gameCanvas = document.getElementById("canvas");

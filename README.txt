@@ -1,25 +1,31 @@
-BALATRO — iPHONE OFFLINE WEB APP
+BALATRO — iPHONE LANDSCAPE / GITHUB PAGES BUILD
 
-WHAT I CHANGED
-- Kept your original single-file game and embedded game assets intact.
-- Added a web app manifest and iPhone Home Screen metadata.
-- Added a service worker that caches the full game for offline launching.
-- Removed the external Cloudflare analytics script, so the game does not need that network request.
-- Improved the game's existing IndexedDB save syncing: it now flushes periodically and when the app is backgrounded/closed.
-- Added app icons.
+This is a self-contained web build. The game engine and game files are embedded
+inside index.html; there are no external game asset folders to upload.
 
-IMPORTANT
-The original game already uses Emscripten IDBFS backed by IndexedDB for its virtual save folder. The updated file strengthens the timing of saves, but actual save behavior still depends on the game writing its save files through that filesystem.
+GITHUB PAGES
+1. Extract this ZIP.
+2. Upload ALL extracted files (index.html, sw.js, manifest.webmanifest,
+   icon-192.png, icon-512.png, README.txt) to the root of your GitHub repository.
+3. In GitHub, open Settings > Pages.
+4. Set the deployment source to Deploy from a branch, choose your main branch
+   and the /(root) folder, then Save.
+5. Open the published HTTPS GitHub Pages URL on your iPhone.
 
-HOW TO INSTALL ON IPHONE
-1. Upload the CONTENTS of this folder to a static HTTPS host (GitHub Pages is one option). Keep index.html, sw.js, manifest.webmanifest, and both icons together in the same folder.
-2. Open the hosted HTTPS address in Safari on your iPhone.
-3. Wait for the game to finish loading once while online. This lets the service worker cache the 21 MB game.
-4. In Safari, tap Share -> Add to Home Screen. If offered, enable "Open as Web App", then tap Add.
-5. Launch the new Balatro icon from your Home Screen. Open it once online before testing offline.
-6. Turn on Airplane Mode and relaunch to test offline play.
+iPHONE PLAYING
+- Play with the phone held horizontally (landscape).
+- For the best full-screen experience, open the Pages URL in Safari, use Share >
+  Add to Home Screen, then launch the installed web app in landscape.
+- The page hides browser scrolling/selection gestures and sizes the game canvas
+  to the visible iPhone viewport, including after rotation or returning to the app.
+- Touch input is handled by the bundled game runtime and forwarded to the game's
+  cursor controls. Tap and drag directly on the game as appropriate.
+- The web app manifest requests landscape orientation. iOS Safari may not force
+  rotation while the site is in a normal browser tab; rotate the phone manually.
+- GitHub Pages must serve the site over HTTPS for the service worker/offline cache
+  to work. The game itself loads from the self-contained index.html.
 
-NOTES
-- Do not open index.html directly from the Files app if you want the installed offline web-app behavior. Service workers require HTTPS (or localhost).
-- Keep using the same hosted address and Home Screen icon; IndexedDB saves are tied to that site origin. Clearing Safari website data or deleting the web app may erase saves.
-- The first online load needs enough time to cache the full HTML file. Do not close Safari during the initial install/cache.
+SAVES
+The web build stores its virtual game save data in browser storage (IndexedDB).
+Use the same iPhone browser or installed web app to keep using the same save data.
+Clearing Safari website data can erase local saves.
