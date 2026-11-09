@@ -133,21 +133,29 @@
             display: block;
             position: fixed;
             inset: 0;
-            margin: auto;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            max-width: 100vw;
-            max-height: 100dvh;
+            margin: 0;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            max-width: none !important;
+            max-height: none !important;
             border: 0;
+            padding: 0;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Keep the game's native aspect ratio inside the iPhone viewport. */
+        /* Fill the complete phone viewport in either orientation. The drawing
+           buffer remains owned by the game runtime; only its displayed surface
+           is fitted to the current iPhone viewport. */
         #canvas {
-            object-fit: contain;
+            object-fit: fill !important;
             object-position: center center;
             background: #000;
-            touch-action: none;
+            overscroll-behavior: none;
         }
 
         #loadingCanvas {
@@ -180,6 +188,59 @@
             window.visualViewport.addEventListener("resize", resizeLoadingCanvas, { passive: true });
         }
         window.addEventListener("load", resizeLoadingCanvas);
+
+        // Keep the game surface exactly aligned with the visible iPhone viewport.
+        // !important styles also override dimensions written inline by Emscripten.
+        function fitGameCanvasToViewport() {
+            const canvas = document.getElementById("canvas");
+            if (!canvas) return;
+            const vv = window.visualViewport;
+            const width = Math.max(1, Math.round(vv ? vv.width : window.innerWidth));
+            const height = Math.max(1, Math.round(vv ? vv.height : window.innerHeight));
+            function setImportant(name, value) {
+                if (canvas.style.getPropertyValue(name) !== value ||
+                    canvas.style.getPropertyPriority(name) !== "important") {
+                    canvas.style.setProperty(name, value, "important");
+                }
+            }
+            setImportant("width", width + "px");
+            setImportant("height", height + "px");
+            setImportant("left", "0px");
+            setImportant("top", "0px");
+            setImportant("right", "auto");
+            setImportant("bottom", "auto");
+        }
+        function scheduleMobileViewportFit() {
+            requestAnimationFrame(function () {
+                fitGameCanvasToViewport();
+                requestAnimationFrame(fitGameCanvasToViewport);
+            });
+        }
+        window.addEventListener("resize", scheduleMobileViewportFit, { passive: true });
+        window.addEventListener("orientationchange", function () {
+            setTimeout(scheduleMobileViewportFit, 100);
+            setTimeout(scheduleMobileViewportFit, 400);
+        }, { passive: true });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", scheduleMobileViewportFit, { passive: true });
+            window.visualViewport.addEventListener("scroll", scheduleMobileViewportFit, { passive: true });
+        }
+        window.addEventListener("load", scheduleMobileViewportFit);
+        document.addEventListener("DOMContentLoaded", scheduleMobileViewportFit);
+        // Re-apply after the game runtime changes the canvas's inline dimensions.
+        if (typeof MutationObserver !== "undefined") {
+            const gameCanvas = document.getElementById("canvas");
+            if (gameCanvas) {
+                let fittingCanvas = false;
+                const canvasStyleObserver = new MutationObserver(function () {
+                    if (fittingCanvas) return;
+                    fittingCanvas = true;
+                    fitGameCanvasToViewport();
+                    fittingCanvas = false;
+                });
+                canvasStyleObserver.observe(gameCanvas, { attributes: true, attributeFilter: ["style"] });
+            }
+        }
 
         var loadingContext = document.getElementById('loadingCanvas').getContext('2d');
 
@@ -7109,8 +7170,12 @@
                                     if (touch === undefined) {
                                         return
                                     }
-                                    var adjustedX = touch.pageX - (scrollX + rect.left);
-                                    var adjustedY = touch.pageY - (scrollY + rect.top);
+                                    // Use viewport-relative coordinates on iOS. pageX/pageY can
+                                    // drift relative to a fixed full-screen canvas after rotation.
+                                    var touchClientX = typeof touch.clientX === "number" ? touch.clientX : touch.pageX - scrollX;
+                                    var touchClientY = typeof touch.clientY === "number" ? touch.clientY : touch.pageY - scrollY;
+                                    var adjustedX = touchClientX - rect.left;
+                                    var adjustedY = touchClientY - rect.top;
                                     adjustedX = adjustedX * (cw / rect.width);
                                     adjustedY = adjustedY * (ch / rect.height);
                                     var coords = {

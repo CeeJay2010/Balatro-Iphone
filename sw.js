@@ -1,4 +1,4 @@
-const CACHE_NAME = "balatro-offline-v2";
+const CACHE_NAME = "balatro-offline-v3";
 const APP_FILES = [
   "./",
   "./index.html",
